@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Tareas{% endblock %}
+
+{% block header %}Tareas{% endblock %}
+
+{% block content %}
+
+<nord-card>
+
+    <div class="flex space-x-6">
+        
+        <div class="flex flex-col bg-gray-200 w-1/2 items-center justify-center p-10">
+            
+            <div class="flex">
+                <nord-icon name="interface-tag" class="text-gray-400 h-6 w-6 mt-6"></nord-icon>
+                <nord-input id="nameTask" class="ml-3 flex-grow" placeholder="Nombre | ej. Instalar httpd" value=""></nord-input>
+            </div>
+        
+            <div class="flex mt-5">
+                <input type="file" id="fileInput" accept=".yml">       
+            </div>
+
+            <div class="flex mt-5">
+                <nord-button id="btnSaveTask" variant="primary">
+                    <nord-icon name="interface-checked"></nord-icon> Guardar
+                </nord-button>
+            </div>
+        </div>
+
+        <div class="flex w-1/2 bg-gray-200">
+            <div class="flex">
+                <pre id="fileContent"></pre>
+            </div> 
+        </div>
+
+    </div>
+
+</nord-card>
+
+<script>
+
+    const nameTask = document.getElementById('nameTask');
+
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            console.log('Archivo seleccionado:', file.name);
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                document.getElementById('fileContent').textContent = content;
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    document.getElementById('btnSaveTask').addEventListener('click', function() {
+        
+        if(nameTask.value.trim() == ''){
+            alert("Ingrese un nombre para la tarea")
+            console.log("Ingrese un nombre para la tarea")
+            return
+        }
+        
+        const fileInput = document.getElementById('fileInput');
+        const name = document.getElementById("nameTask").value;
+    
+        if (fileInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('name', name);
+    
+            fetch('/save_task', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            alert('Por favor selecciona un archivo.');
+        }
+    });
+    
+</script>
+
+{% endblock %}

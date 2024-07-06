@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: jsosa12800/ansible-web:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development  # Configura el entorno de desarrollo
+      - FLASK_APP=app  # Configura el entorno de desarrollo
+    develop:
+      watch:
+        - action: sync
+          path: ./app
+          target: /main
+      restart: always 
+      container_name: ansible-app
+      depends_on:
+       - mongo
+    networks:
+      - app-network
+    links:
+      - mongo
+
+  # New MongoDB service definition
+  mongo:
+    image: mongo:latest
+    #restart: always  # Restart container on failure
+    ports:
+      - "27018:27017"  # Map container port 27017 to host port 27017
+    volumes:
+      - mongo-data:/data/db  # Persist data using a named volume
+    networks:
+      - app-network
+
+networks:
+    app-network:
+        driver: bridge
+
+volumes:
+  mongo-data:
